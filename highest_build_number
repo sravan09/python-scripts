@@ -1,0 +1,59 @@
+"""
+Question 1:
+----------
+Given a folder of build files that might look like this:
+
+/Build-1.dmg
+/Build-2.dmg
+/Build-2.1.dmg
+/Build-2.1.1.dmg
+/Build-3.dmg
+/Build-3.3.dmg
+/Build-3.19.dmg
+
+Write a script that takes a path to the folder as an argument, and prints the highest build number (just the number, i.e. 2.1.1)
+Note:  The first digit can go up to 999 and should always be present, but the second and third can only go up to 99, and might not be included.
+"""
+
+import os
+import sys
+import argparse
+import re
+
+def question_1(path):
+# Get the list of all files in the directory
+    try:
+        build_versions = []
+        if os.path.exists(path):  
+           for filename in os.listdir(path):
+               if filename.endswith(".dmg") and filename.startswith("Build-"):
+                  build_versions.append(filename.strip("Build-").strip(".dmg"))
+        else:
+           print "Provided path ({0}) not found. Please provide one".format(path)
+           sys.exit(-1)
+    except Exception as error:
+           print "Error: {0}".format(error)
+           sys.exit(-1)
+
+# Print the highest build number
+    if build_versions: 
+       convert = lambda text: int(text) if text.isdigit() else text.lower() 
+       alphanum_key = lambda key: [ convert(c) for c in re.split('([0-9]+)', key) ] 
+       print "Highest build number: {0}".format(sorted(build_versions, key = alphanum_key)[-1])
+       sys.exit(0)
+    else:
+       print "No Build files found inside the directory ({0})".format(path)
+       sys.exit(-1)
+
+if __name__ == '__main__':
+    try:
+        parser = argparse.ArgumentParser(description='script that takes a path to the folder as an argument, and prints the highest build number')
+        required = parser.add_argument_group('required arguments')
+        optional = parser.add_argument_group('optional arguments')
+        required.add_argument('-p','--path', help="full path to the folder", required=True)
+        args = parser.parse_args()
+        path = args.path
+        question_1(path)
+    except KeyboardInterrupt:
+        print 'Ctrl^C Caught! Exiting...'
+        sys.exit(-1)

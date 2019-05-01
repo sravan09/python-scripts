@@ -1,0 +1,42 @@
+"""
+Question 2:
+----------
+Write a script that outputs the network interfaces on a system with the corresponding IP addresses in CIDR format.  
+Bonus points for including IPv6 addresses.
+
+Author: Sravan Kumar Tammineni
+Platforms: Linux
+"""
+
+import subprocess
+import sys
+import platform
+
+if platform.system() == "Linux":
+   networkInterfaces = subprocess.Popen(["ifconfig | expand | cut -c1-8 | sort | uniq -u | awk -F: '{print $1;}'"], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell = True).stdout.read().strip("[").splitlines()
+   ipV4_cidrs = []
+   ipV6_cidrs = []
+   for interface in networkInterfaces:
+       ipV4 = subprocess.Popen(["ip addr show {0} | grep -w inet | awk '{{print $2}}'".format(interface)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell = True).stdout.read().splitlines()
+       ipV4_cidrs.append("{0}  -  {1}".format(interface,ipV4))
+       ipV6 = subprocess.Popen(["ip addr show {0} | grep inet6 | awk '{{print $2}}'".format(interface)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell = True).stdout.read().splitlines()
+       ipV6_cidrs.append("{0}  -  {1}".format(interface,ipV6))
+   print "   Interface  -  CIDR"
+   print "--------------------------------------"
+   count = 1
+   for cidr in ipV4_cidrs:
+       print "{0}. {1}".format(count,cidr)
+       count = count + 1
+   print "\n"
+   print "----------Bonus Points----------\n"
+   print "   Interface  -  IPv6 CIDR"
+   print "--------------------------------------"
+   count = 1
+   for cidr in ipV6_cidrs:
+       print "{0}. {1}".format(count,cidr)
+       count = count + 1
+   sys.exit(0)
+else:
+   print "Supports only Linux platform"
+   sys.exit(-1)
+

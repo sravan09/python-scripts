@@ -1,0 +1,44 @@
+"""
+USGS (US Geological Survey) publishes various earthquake data as JSON feed. Here's a feed spanning all domestic earthquages from the past week:
+https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson
+
+Using this JSON feed:
+1) identify every earthquake in California from past week,
+2) list them chronologically (ascending),
+3. and finally output in a format resembling the following e.g.:
+
+2017-07-13T20:43:37+00:00 | 3km NW of Greenville, California | Magnitude: 1
+2017-07-13T22:09:53+00:00 | 41km SW of Ferndale, California | Magnitude: 2.76
+2017-07-13T22:31:04+00:00 | 11km E of Mammoth Lakes, California | Magnitude: 1.31
+2017-07-13T22:32:48+00:00 | 15km SE of Mammoth Lakes, California | Magnitude: 0.92
+2017-07-13T22:37:52+00:00 | 12km E of Mammoth Lakes, California | Magnitude: 0.95
+2017-07-13T22:45:28+00:00 | 37km SE of Bridgeport, California | Magnitude: 1.7
+2017-07-13T22:49:58+00:00 | 8km ENE of Mammoth Lakes, California | Magnitude: 0.92
+2017-07-13T22:54:30+00:00 | 3km SE of Atascadero, California | Magnitude: 2.04
+
+"""
+
+import json
+import urllib2
+import time
+import sys
+
+try:
+    data = json.load(urllib2.urlopen("https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"))
+    week_ago_epoch = time.time()-604800
+    result_list = []
+    for key in data['features']:
+        if ('California' in key['properties']['place']) or ('CA' in key['properties']['place']):
+           if key['properties']['updated'] > week_ago_epoch:
+              result_list.append("{0} | {1} | Magnitude: {2}".format(time.strftime('%Y-%m-%dT%H:%M:%S+00:00', time.localtime(key['properties']['updated']/1000)),key['properties']['place'],key['properties']['mag']))
+    if result_list:
+       result_list.sort()
+       for list in result_list:
+           print list 
+       sys.exit(0)
+    else:
+       print "No earthquake identified in California from past week"     
+       sys.exit(0)
+except Exception as error:
+    print "Error: {0}".format(error)
+    sys.exit(-1)
